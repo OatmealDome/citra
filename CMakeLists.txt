@@ -66,8 +66,10 @@ endif()
 # Include bundled CMake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/cmake-modules")
 
+if (NOT IOS)
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
+endif(NOT IOS)
 
 option(ENABLE_GLFW "Enable the GLFW frontend" ON)
 if (ENABLE_GLFW)
@@ -126,10 +128,18 @@ if (ENABLE_GLFW)
 endif()
 
 IF (APPLE)
-    FIND_LIBRARY(COCOA_LIBRARY Cocoa)           # Umbrella framework for everything GUI-related
-    FIND_LIBRARY(IOKIT_LIBRARY IOKit)           # GLFW dependency
-    FIND_LIBRARY(COREVIDEO_LIBRARY CoreVideo)   # GLFW dependency
-    set(PLATFORM_LIBRARIES iconv ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    IF (NOT IOS)
+        FIND_LIBRARY(COCOA_LIBRARY Cocoa)           # Umbrella framework for everything GUI-related
+        FIND_LIBRARY(IOKIT_LIBRARY IOKit)           # GLFW dependency
+        FIND_LIBRARY(COREVIDEO_LIBRARY CoreVideo)   # GLFW dependency
+        set(PLATFORM_LIBRARIES iconv ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    else()
+	add_definitions(-DIOS)
+        FIND_LIBRARY(UIKIT_LIBRARY UIKit)
+        FIND_LIBRARY(OPENGLES_LIBRARY OpenGLES)
+        FIND_LIBRARY(QUARTZCORE_LIBRARY QuartzCore)
+        set(PLATFORM_LIBRARIES iconv ${UIKIT_LIBRARY} ${OPENGLES_LIBRARY} ${QUARTZCORE_LIBRARY})
+    endif()
     
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
